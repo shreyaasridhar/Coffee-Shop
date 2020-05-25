@@ -46,7 +46,7 @@ def get_drinks():
 '''
 @app.route('/drinks-detail')
 @requires_auth("GET:drinks-detail")
-def get_detailed_drinks():
+def get_detailed_drinks(jwt):
     drinks = Drink.query.order_by(Drink.id).all()
     return jsonify({
         "success": True,
@@ -65,12 +65,14 @@ def get_detailed_drinks():
 '''
 @app.route('/drinks', methods=["POST"])
 @requires_auth("POST:drinks")
-def post_drinks():
-    request.get_json()
+def post_drinks(jwt):
+    data = request.get_json()
+    drink = Drink(title=data['title'], recipe=json.dumps(data['recipe']))
+    drink.insert()
     drinks = Drink.query.order_by(Drink.id).all()
     return jsonify({
         "success": True,
-        "drinks": [drink.short() for drink in drinks]
+        "drinks": [drink.long() for drink in drinks]
     })
 
 
@@ -87,7 +89,7 @@ def post_drinks():
 '''
 @app.route('/drinks/<int:drink_id>', methods=["PATCH"])
 @requires_auth("PATCH:drinks")
-def update_drinks(drink_id):
+def update_drinks(jwt, drink_id):
     drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
     if not drink:
         abort(404)
@@ -110,7 +112,7 @@ def update_drinks(drink_id):
 '''
 @app.route('/drinks/<int:drink_id>', methods=["DELETE"])
 @requires_auth("DELETE:drinks")
-def delete_drinks(drink_id):
+def delete_drinks(jwt, drink_id):
     drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
     if not drink:
         abort(404)
