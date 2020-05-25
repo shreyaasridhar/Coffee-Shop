@@ -93,10 +93,14 @@ def update_drinks(jwt, drink_id):
     drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
     if not drink:
         abort(404)
+    data = request.get_json()
+    print(data, data['recipe'])
+    setattr(drink, 'title', data['title'])
+    setattr(drink, 'recipe', json.dumps(data['recipe']))
     drink.update()
     return jsonify({
         "success": True,
-        "drinks": [drink.long() for drink in drink]
+        "drinks": drink.long()
     })
 
 
