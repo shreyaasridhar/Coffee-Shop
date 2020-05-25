@@ -44,6 +44,14 @@ def get_drinks():
     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks-detail')
+@requires_auth("GET:drinks-detail")
+def get_detailed_drinks():
+    drinks = Drink.query.order_by(Drink.id).all()
+    return jsonify({
+        "success": True,
+        "drinks": [drink.long() for drink in drinks]
+    })
 
 
 '''
@@ -55,6 +63,15 @@ def get_drinks():
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks', methods=["POST"])
+@requires_auth("POST:drinks")
+def post_drinks():
+    request.get_json()
+    drinks = Drink.query.order_by(Drink.id).all()
+    return jsonify({
+        "success": True,
+        "drinks": [drink.short() for drink in drinks]
+    })
 
 
 '''
@@ -68,6 +85,17 @@ def get_drinks():
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks/<int:drink_id>', methods=["PATCH"])
+@requires_auth("PATCH:drinks")
+def update_drinks(drink_id):
+    drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
+    if not drink:
+        abort(404)
+    drink.update()
+    return jsonify({
+        "success": True,
+        "drinks": [drink.long() for drink in drink]
+    })
 
 
 '''
@@ -80,6 +108,17 @@ def get_drinks():
     returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks/<int:drink_id>', methods=["DELETE"])
+@requires_auth("DELETE:drinks")
+def delete_drinks(drink_id):
+    drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
+    if not drink:
+        abort(404)
+    drink.delete()
+    return jsonify({
+        "success": True,
+        "delete": drink_id
+    })
 
 
 # Error Handling
@@ -106,13 +145,28 @@ def unprocessable(error):
 
 '''
 
+
 '''
 @TODO implement error handler for 404
     error handler should conform to general task above
 '''
+@app.errorhandler(404)
+def Notfound(error):
+    return jsonify({
+        "success": True,
+        "error": 404,
+        "description": "Resource not found"
+    }), 404
 
 
 '''
 @TODO implement error handler for AuthError
     error handler should conform to general task above
 '''
+@app.errorhandler(AuthError)
+def autherror(error):
+    return jsonify({
+        "success": True,
+        "error": error.status_code,
+        "description": error.error["description"]
+    }), error.status_code
