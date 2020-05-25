@@ -35,7 +35,7 @@ class AuthError(Exception):
 
 
 def get_token_auth_header():
-    auth = request.headers.get('Authorozation', None)
+    auth = request.headers.get('Authorization', None)
     if not auth:
         raise AuthError({"code": "invalid_header",
                          "description": "Authorization header expected."}, 401)
@@ -44,7 +44,7 @@ def get_token_auth_header():
     if parts[0].lower() != 'bearer':
         raise AuthError({"code": "invalid_header",
                          "description": "Authorization must start with 'bearer'."}, 401)
-    elif len(parts) == 2:
+    elif len(parts) == 1:
         raise AuthError({"code": "invalid_header",
                          "description": "Token not found."}, 401)
     elif len(parts) > 2:
